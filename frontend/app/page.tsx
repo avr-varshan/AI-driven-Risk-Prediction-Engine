@@ -13,7 +13,7 @@ import { FiltersPanel } from '@/components/patients/filters-panel';
 import { CardSkeleton, TableSkeleton, ChartSkeleton } from '@/components/ui/loading-skeleton';
 import { getPatients } from '@/lib/api';
 import { FilterParams } from '@/lib/types';
-import { Download, Users, Clock, FileText } from 'lucide-react';
+import { Download, Users, Clock, FileText, LineChart } from 'lucide-react';
 
 export default function DashboardPage() {
   const [filters, setFilters] = useState<FilterParams>({
@@ -129,7 +129,7 @@ export default function DashboardPage() {
                   <div className="text-3xl font-bold text-red-600">
                     {data.summary.labs.a1c_gt8_pct.toFixed(1)}%
                   </div>
-                  <p className="text-sm text-gray-600">Patients with A1C > 8%</p>
+                  <p className="text-sm text-gray-600">Patients with A1C &gt; 8%</p>
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div 
                       className="bg-red-500 h-2 rounded-full transition-all duration-500"
@@ -166,6 +166,21 @@ export default function DashboardPage() {
               )
             )}
           </CardContent>
+        </Card>
+      </div>
+
+      {/* Model Performance Section */}
+      <div className="mb-12">
+        <Card className="hover:shadow-lg transition-shadow">
+          <CardHeader className="flex items-center justify-between">
+            <CardTitle className="text-xl flex items-center gap-2">
+              <LineChart className="w-5 h-5 text-blue-600" />
+              Model Performance & Validation
+            </CardTitle>
+            <Button asChild>
+              <Link href="/model">View Report</Link>
+            </Button>
+          </CardHeader>
         </Card>
       </div>
 
