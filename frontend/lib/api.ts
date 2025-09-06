@@ -106,20 +106,23 @@ export async function getWhatIfScore(scenarioData: Record<string, any>): Promise
 }
 
 // Chat with LLM
+// Replace your existing sendChatMessage with this exact function
+// Replace existing sendChatMessage with this
 export async function sendChatMessage(
   message: string,
   scope: 'global' | 'patient' = 'global',
   patientNbr?: string,
   whatIf?: Record<string, any>
 ): Promise<ChatResponse> {
-  let url = `${API_BASE}/v1/chat`;
+  const prefix = '/api';
+  let url = `${prefix}/v1/chat`; // <-- global goes here (matches app/api/v1/chat/route.ts)
 
-  if (scope === 'global') {
-    url = `${API_BASE}/v1/chat/global`;
-  } else if (scope === 'patient') {
-    if (!patientNbr) throw new Error("Patient chat requires patientNbr");
-    url = `${API_BASE}/v1/chat/patient/${patientNbr}`;
+  if (scope === 'patient') {
+    if (!patientNbr) throw new Error('Patient chat requires patientNbr');
+    url = `${prefix}/v1/chat/patient/${patientNbr}`;
   }
+
+  console.log('[sendChatMessage] POST ->', url);
 
   const response = await fetch(url, {
     method: 'POST',
@@ -131,7 +134,8 @@ export async function sendChatMessage(
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to send chat message: ${response.statusText}`);
+    const txt = await response.text().catch(() => response.statusText);
+    throw new Error(`Failed to send chat message: ${response.status} ${txt}`);
   }
 
   return response.json();

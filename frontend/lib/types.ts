@@ -125,13 +125,13 @@ export interface ScoreResponse {
 export interface ChatUsedData {
   risk_prob_before?: number;
   risk_prob_after?: number;
-  drivers: string[];
+  drivers?: string[]; // optional in case the backend omits it
 }
 
 export interface ChatResponse {
   answer: string;
-  used_data: ChatUsedData;
-  links: string[];
+  used_data?: ChatUsedData; // made optional to match route behavior
+  links?: string[]; // made optional to match route behavior (and can be empty array)
 }
 
 export interface FilterParams {
