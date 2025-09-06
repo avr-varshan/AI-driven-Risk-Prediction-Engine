@@ -1,0 +1,5 @@
+{
+  "answer": "Prioritize 86047875 (0.82 risk). Main drivers across cohort: high A1C, frequent ER visits, insulin ↑.",
+  "used_data": { "drivers": ["A1Cresult_gt8", "number_emergency>=2", "insulin_Up"] },
+  "links": [ { "label": "Open patient detail", "href": "/patients/86047875" } ]
+}

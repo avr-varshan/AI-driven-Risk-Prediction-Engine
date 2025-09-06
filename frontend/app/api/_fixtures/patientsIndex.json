@@ -1,0 +1,55 @@
+{
+  "summary": {
+    "total_patients": 3,
+    "avg_time_in_hospital": 4.7,
+    "avg_num_diagnoses": 7.3,
+    "risk_split": { "high": 0.33, "medium": 0.33, "low": 0.34 },
+    "labs": { "a1c_gt8_pct": 0.33, "glucose_abnormal_pct": 0.33 },
+    "top_comorbidities": [
+      { "label": "Hypertension", "count": 2 },
+      { "label": "CKD", "count": 1 }
+    ]
+  },
+  "patients": [
+    {
+      "patient_nbr": "86047875",
+      "age": "[60-70)",
+      "gender": "Female",
+      "race": "Caucasian",
+      "last_admission_type": "Emergency",
+      "time_in_hospital": 6,
+      "readmitted_label": ">30",
+      "num_diagnoses": 8,
+      "med_summary": { "insulin": "Up", "metformin": "Steady" },
+      "risk_prob": 0.82,
+      "risk_group": "high"
+    },
+    {
+      "patient_nbr": "55001234",
+      "age": "[50-60)",
+      "gender": "Male",
+      "race": "AfricanAmerican",
+      "last_admission_type": "Elective",
+      "time_in_hospital": 3,
+      "readmitted_label": "NO",
+      "num_diagnoses": 6,
+      "med_summary": { "insulin": "No", "metformin": "Steady" },
+      "risk_prob": 0.47,
+      "risk_group": "medium"
+    },
+    {
+      "patient_nbr": "33009988",
+      "age": "[70-80)",
+      "gender": "Female",
+      "race": "Hispanic",
+      "last_admission_type": "Emergency",
+      "time_in_hospital": 5,
+      "readmitted_label": "NO",
+      "num_diagnoses": 7,
+      "med_summary": { "insulin": "No", "metformin": "No" },
+      "risk_prob": 0.21,
+      "risk_group": "low"
+    }
+  ],
+  "pagination": { "page": 1, "page_size": 25, "total": 3 }
+}

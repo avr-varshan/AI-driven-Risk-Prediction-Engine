@@ -1,0 +1,1 @@
+{ "prob": 0.38, "group": "medium", "local_factors": [ { "feature": "A1Cresult_normal", "impact": "-0.12" } ] }

@@ -1,0 +1,138 @@
+import { FilterParams, PatientsResponse, PatientDetailResponse, CreatePatientResponse, ScoreResponse, ChatResponse } from './types';
+
+// Get the base URL correctly for both server and client environments
+const getBaseUrl = () => {
+  // Check if we're in a browser environment
+  if (typeof window !== 'undefined') {
+    // Use window.location.origin for absolute URLs in the browser
+    return window.location.origin + (process.env.NEXT_PUBLIC_API_BASE || '');
+  }
+  
+  // For server-side rendering in development, use a full URL
+  // This is needed because fetch() requires absolute URLs in Node.js
+  if (process.env.NODE_ENV === 'development') {
+    return 'http://localhost:3000' + (process.env.NEXT_PUBLIC_API_BASE || '');
+  }
+  
+  // For production server-side rendering, you might need to set an actual domain
+  // or use a relative URL that Next.js can handle internally
+  return process.env.NEXT_PUBLIC_API_BASE || '';
+};
+
+const API_BASE = getBaseUrl();
+
+// Utility to build query string from filter params
+function buildQueryString(params: FilterParams): string {
+  const searchParams = new URLSearchParams();
+  
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      if (Array.isArray(value)) {
+        value.forEach(v => searchParams.append(key, v.toString()));
+      } else {
+        searchParams.append(key, value.toString());
+      }
+    }
+  });
+  
+  return searchParams.toString();
+}
+
+// Get patients with filtering and pagination
+export async function getPatients(params: FilterParams = {}): Promise<PatientsResponse> {
+  const queryString = buildQueryString(params);
+  const url = `${API_BASE}/v1/patients${queryString ? `?${queryString}` : ''}`;
+  
+  const response = await fetch(url, {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+  
+  if (!response.ok) {
+    throw new Error(`Failed to fetch patients: ${response.statusText}`);
+  }
+  
+  return response.json();
+}
+
+// Get single patient detail
+export async function getPatient(patientNbr: string): Promise<PatientDetailResponse> {
+  const response = await fetch(`${API_BASE}/v1/patients/${patientNbr}`, {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+  
+  if (!response.ok) {
+    throw new Error(`Failed to fetch patient: ${response.statusText}`);
+  }
+  
+  return response.json();
+}
+
+// Create or update patient
+export async function createPatient(patientData: Record<string, any>): Promise<CreatePatientResponse> {
+  const response = await fetch(`${API_BASE}/v1/patients`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(patientData),
+  });
+  
+  if (!response.ok) {
+    throw new Error(`Failed to create patient: ${response.statusText}`);
+  }
+  
+  return response.json();
+}
+
+// What-if scoring (no persistence)
+export async function getWhatIfScore(scenarioData: Record<string, any>): Promise<ScoreResponse> {
+  const response = await fetch(`${API_BASE}/v1/score`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(scenarioData),
+  });
+  
+  if (!response.ok) {
+    throw new Error(`Failed to get score: ${response.statusText}`);
+  }
+  
+  return response.json();
+}
+
+// Chat with LLM
+export async function sendChatMessage(
+  message: string,
+  scope: 'global' | 'patient' = 'global',
+  patientNbr?: string,
+  whatIf?: Record<string, any>
+): Promise<ChatResponse> {
+  let url = `${API_BASE}/v1/chat`;
+
+  if (scope === 'global') {
+    url = `${API_BASE}/v1/chat/global`;
+  } else if (scope === 'patient') {
+    if (!patientNbr) throw new Error("Patient chat requires patientNbr");
+    url = `${API_BASE}/v1/chat/patient/${patientNbr}`;
+  }
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      message,
+      what_if: whatIf,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to send chat message: ${response.statusText}`);
+  }
+
+  return response.json();
+}
