@@ -2,7 +2,7 @@ import './globals.css';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { QueryProvider } from '@/components/providers/query-provider';
-import { ChatDrawer } from '@/components/chat/chat-drawer';
+import { ChatDrawerWithContext } from '@/components/chat/chat-drawer-context';
 import { Toaster } from '@/components/ui/sonner';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -23,7 +23,7 @@ export default function RootLayout({
         <QueryProvider>
           <div className="min-h-screen bg-gray-50">
             {children}
-            <ChatDrawer />
+            <ChatDrawerWithContext />
             <Toaster />
           </div>
         </QueryProvider>
