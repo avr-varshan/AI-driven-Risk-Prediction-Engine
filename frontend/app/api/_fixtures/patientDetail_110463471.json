@@ -1,0 +1,124 @@
+{
+  "patient": {
+    "patient_nbr": "110463471",
+    "demographics": {
+      "age": "[60-70)",
+      "gender": "Male",
+      "race": "Caucasian"
+    },
+    "last_encounter": {
+      "admission_type": "Urgent",
+      "discharge_disposition": "Discharged to SNF/ICF",
+      "admission_source": "Transfer from a Skilled Nursing Facility",
+      "time_in_hospital": 6,
+      "date": "2010-03-02"
+    },
+    "utilization": {
+      "outpatient": 0,
+      "inpatient": 5,
+      "emergency": 1
+    },
+    "diagnoses_timeline": [
+      {
+        "date": "2010-01-01",
+        "groups": [
+          "Diabetes"
+        ]
+      },
+      {
+        "date": "2010-01-31",
+        "groups": [
+          "COPD",
+          "Symptoms/Signs"
+        ]
+      },
+      {
+        "date": "2010-03-02",
+        "groups": [
+          "Other/Unmapped"
+        ]
+      }
+    ],
+    "labs_timeline": {
+      "a1c": [
+        {
+          "date": "2010-01-01",
+          "value": "none"
+        },
+        {
+          "date": "2010-01-31",
+          "value": "none"
+        },
+        {
+          "date": "2010-03-02",
+          "value": "none"
+        }
+      ],
+      "glucose": [
+        {
+          "date": "2010-01-01",
+          "value": "none"
+        },
+        {
+          "date": "2010-01-31",
+          "value": "none"
+        },
+        {
+          "date": "2010-03-02",
+          "value": "none"
+        }
+      ]
+    },
+    "medications_timeline": [
+      {
+        "date": "2010-01-01",
+        "drug": "insulin",
+        "change": "Down"
+      },
+      {
+        "date": "2010-01-01",
+        "drug": "metformin",
+        "change": "No"
+      },
+      {
+        "date": "2010-01-31",
+        "drug": "insulin",
+        "change": "Steady"
+      },
+      {
+        "date": "2010-01-31",
+        "drug": "metformin",
+        "change": "No"
+      },
+      {
+        "date": "2010-03-02",
+        "drug": "insulin",
+        "change": "Up"
+      },
+      {
+        "date": "2010-03-02",
+        "drug": "metformin",
+        "change": "No"
+      }
+    ],
+    "risk": {
+      "prob": 0.78,
+      "group": "high",
+      "local_factors": [
+        {
+          "feature": "insulin_Up",
+          "impact": "+0.08"
+        },
+        {
+          "feature": "number_inpatient>=1",
+          "impact": "+0.06"
+        }
+      ],
+      "recommendations": [
+        "Schedule follow-up within 2 weeks",
+        "Review insulin regimen",
+        "Educator referral for SMBG plan"
+      ]
+    }
+  }
+}

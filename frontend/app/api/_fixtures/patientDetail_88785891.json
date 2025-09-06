@@ -1,0 +1,123 @@
+{
+  "patient": {
+    "patient_nbr": "88785891",
+    "demographics": {
+      "age": "[20-30)",
+      "gender": "Female",
+      "race": "Caucasian"
+    },
+    "last_encounter": {
+      "admission_type": "Elective",
+      "discharge_disposition": "Left AMA",
+      "admission_source": "Transfer from a hospital",
+      "time_in_hospital": 3,
+      "date": "2010-03-02"
+    },
+    "utilization": {
+      "outpatient": 2,
+      "inpatient": 9,
+      "emergency": 3
+    },
+    "diagnoses_timeline": [
+      {
+        "date": "2010-01-01",
+        "groups": [
+          "Diabetes"
+        ]
+      },
+      {
+        "date": "2010-01-31",
+        "groups": [
+          "Diabetes"
+        ]
+      },
+      {
+        "date": "2010-03-02",
+        "groups": [
+          "Other/Unmapped"
+        ]
+      }
+    ],
+    "labs_timeline": {
+      "a1c": [
+        {
+          "date": "2010-01-01",
+          "value": "none"
+        },
+        {
+          "date": "2010-01-31",
+          "value": "none"
+        },
+        {
+          "date": "2010-03-02",
+          "value": "none"
+        }
+      ],
+      "glucose": [
+        {
+          "date": "2010-01-01",
+          "value": "none"
+        },
+        {
+          "date": "2010-01-31",
+          "value": "none"
+        },
+        {
+          "date": "2010-03-02",
+          "value": "none"
+        }
+      ]
+    },
+    "medications_timeline": [
+      {
+        "date": "2010-01-01",
+        "drug": "insulin",
+        "change": "Up"
+      },
+      {
+        "date": "2010-01-01",
+        "drug": "metformin",
+        "change": "No"
+      },
+      {
+        "date": "2010-01-31",
+        "drug": "insulin",
+        "change": "Up"
+      },
+      {
+        "date": "2010-01-31",
+        "drug": "metformin",
+        "change": "No"
+      },
+      {
+        "date": "2010-03-02",
+        "drug": "insulin",
+        "change": "No"
+      },
+      {
+        "date": "2010-03-02",
+        "drug": "metformin",
+        "change": "No"
+      }
+    ],
+    "risk": {
+      "prob": 0.9,
+      "group": "high",
+      "local_factors": [
+        {
+          "feature": "number_emergency>=2",
+          "impact": "+0.12"
+        },
+        {
+          "feature": "number_inpatient>=1",
+          "impact": "+0.06"
+        }
+      ],
+      "recommendations": [
+        "Schedule follow-up within 2 weeks",
+        "Review insulin regimen",
+        "Educator referral for SMBG plan"
+      ]
+    }
+  }
+}

@@ -1,4 +1,5 @@
-import patientDetail from '@/app/api/_fixtures/patientDetail_86047875.json';
+import fs from 'fs';
+import path from 'path';
 
 const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 
@@ -8,10 +9,17 @@ export async function GET(
 ) {
   await sleep(400);
 
-  // Minimal branching: return known fixture for ID 86047875, else 404
-  if (params.patient_nbr === '86047875') {
-    return Response.json(patientDetail, { status: 200 });
-  }
+  const filePath = path.join(
+    process.cwd(),
+    'app/api/_fixtures',
+    `patientDetail_${params.patient_nbr}.json`
+  );
 
-  return Response.json({ patient: null }, { status: 404 });
+  try {
+    const data = fs.readFileSync(filePath, 'utf-8');
+    return Response.json(JSON.parse(data), { status: 200 });
+  } catch (err) {
+
+    return Response.json({ patient: null }, { status: 404 });
+  }
 }

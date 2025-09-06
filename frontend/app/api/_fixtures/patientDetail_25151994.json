@@ -1,0 +1,130 @@
+{
+  "patient": {
+    "patient_nbr": "25151994",
+    "demographics": {
+      "age": "[70-80)",
+      "gender": "Female",
+      "race": "Caucasian"
+    },
+    "last_encounter": {
+      "admission_type": "Not Available",
+      "discharge_disposition": "Expired",
+      "admission_source": "17",
+      "time_in_hospital": 6,
+      "date": "2010-03-02"
+    },
+    "utilization": {
+      "outpatient": 0,
+      "inpatient": 4,
+      "emergency": 2
+    },
+    "diagnoses_timeline": [
+      {
+        "date": "2010-01-01",
+        "groups": [
+          "Diabetes",
+          "Hypertension",
+          "Symptoms/Signs"
+        ]
+      },
+      {
+        "date": "2010-01-31",
+        "groups": [
+          "COPD",
+          "Hypertension"
+        ]
+      },
+      {
+        "date": "2010-03-02",
+        "groups": [
+          "Symptoms/Signs"
+        ]
+      }
+    ],
+    "labs_timeline": {
+      "a1c": [
+        {
+          "date": "2010-01-01",
+          "value": "none"
+        },
+        {
+          "date": "2010-01-31",
+          "value": "none"
+        },
+        {
+          "date": "2010-03-02",
+          "value": "none"
+        }
+      ],
+      "glucose": [
+        {
+          "date": "2010-01-01",
+          "value": ">200"
+        },
+        {
+          "date": "2010-01-31",
+          "value": "normal"
+        },
+        {
+          "date": "2010-03-02",
+          "value": ">300"
+        }
+      ]
+    },
+    "medications_timeline": [
+      {
+        "date": "2010-01-01",
+        "drug": "insulin",
+        "change": "Steady"
+      },
+      {
+        "date": "2010-01-01",
+        "drug": "metformin",
+        "change": "No"
+      },
+      {
+        "date": "2010-01-31",
+        "drug": "insulin",
+        "change": "No"
+      },
+      {
+        "date": "2010-01-31",
+        "drug": "metformin",
+        "change": "No"
+      },
+      {
+        "date": "2010-03-02",
+        "drug": "insulin",
+        "change": "No"
+      },
+      {
+        "date": "2010-03-02",
+        "drug": "metformin",
+        "change": "No"
+      }
+    ],
+    "risk": {
+      "prob": 0.43,
+      "group": "medium",
+      "local_factors": [
+        {
+          "feature": "max_glu_serum_gt300",
+          "impact": "+0.10"
+        },
+        {
+          "feature": "number_emergency>=2",
+          "impact": "+0.12"
+        },
+        {
+          "feature": "number_inpatient>=1",
+          "impact": "+0.06"
+        }
+      ],
+      "recommendations": [
+        "Schedule check-in within 4 weeks",
+        "Reassess labs (A1C/Glucose)",
+        "Medication adherence counseling"
+      ]
+    }
+  }
+}

@@ -1,0 +1,123 @@
+{
+  "patient": {
+    "patient_nbr": "1660293",
+    "demographics": {
+      "age": "[70-80)",
+      "gender": "Female",
+      "race": "Caucasian"
+    },
+    "last_encounter": {
+      "admission_type": "Emergency",
+      "discharge_disposition": "Discharged to home",
+      "admission_source": "Emergency Room",
+      "time_in_hospital": 6,
+      "date": "2010-03-02"
+    },
+    "utilization": {
+      "outpatient": 1,
+      "inpatient": 9,
+      "emergency": 0
+    },
+    "diagnoses_timeline": [
+      {
+        "date": "2010-01-01",
+        "groups": [
+          "Diabetes"
+        ]
+      },
+      {
+        "date": "2010-01-31",
+        "groups": [
+          "Other/Unmapped"
+        ]
+      },
+      {
+        "date": "2010-03-02",
+        "groups": [
+          "Other/Unmapped"
+        ]
+      }
+    ],
+    "labs_timeline": {
+      "a1c": [
+        {
+          "date": "2010-01-01",
+          "value": "none"
+        },
+        {
+          "date": "2010-01-31",
+          "value": "none"
+        },
+        {
+          "date": "2010-03-02",
+          "value": "none"
+        }
+      ],
+      "glucose": [
+        {
+          "date": "2010-01-01",
+          "value": "none"
+        },
+        {
+          "date": "2010-01-31",
+          "value": "none"
+        },
+        {
+          "date": "2010-03-02",
+          "value": "none"
+        }
+      ]
+    },
+    "medications_timeline": [
+      {
+        "date": "2010-01-01",
+        "drug": "insulin",
+        "change": "Steady"
+      },
+      {
+        "date": "2010-01-01",
+        "drug": "metformin",
+        "change": "No"
+      },
+      {
+        "date": "2010-01-31",
+        "drug": "insulin",
+        "change": "Down"
+      },
+      {
+        "date": "2010-01-31",
+        "drug": "metformin",
+        "change": "No"
+      },
+      {
+        "date": "2010-03-02",
+        "drug": "insulin",
+        "change": "Up"
+      },
+      {
+        "date": "2010-03-02",
+        "drug": "metformin",
+        "change": "No"
+      }
+    ],
+    "risk": {
+      "prob": 0.3,
+      "group": "low",
+      "local_factors": [
+        {
+          "feature": "insulin_Up",
+          "impact": "+0.08"
+        },
+        {
+          "feature": "number_inpatient>=1",
+          "impact": "+0.06"
+        }
+      ],
+      "recommendations": [
+        "Maintain routine follow-up",
+        "Reinforce lifestyle plan",
+        "Monitor labs as per protocol"
+      ]
+    }
+  }
+}
