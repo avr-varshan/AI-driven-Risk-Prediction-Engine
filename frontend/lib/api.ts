@@ -88,22 +88,22 @@ export async function createPatient(patientData: Record<string, any>): Promise<C
   return response.json();
 }
 
-// What-if scoring (no persistence)
-export async function getWhatIfScore(scenarioData: Record<string, any>): Promise<ScoreResponse> {
-  const response = await fetch(`${API_BASE}/v1/score`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(scenarioData),
-  });
+// // What-if scoring (no persistence)
+// export async function getWhatIfScore(scenarioData: Record<string, any>): Promise<ScoreResponse> {
+//   const response = await fetch(`${API_BASE}/v1/score`, {
+//     method: 'POST',
+//     headers: {
+//       'Content-Type': 'application/json',
+//     },
+//     body: JSON.stringify(scenarioData),
+//   });
   
-  if (!response.ok) {
-    throw new Error(`Failed to get score: ${response.statusText}`);
-  }
+//   if (!response.ok) {
+//     throw new Error(`Failed to get score: ${response.statusText}`);
+//   }
   
-  return response.json();
-}
+//   return response.json();
+// }
 
 // Chat with LLM
 // Replace your existing sendChatMessage with this exact function
@@ -161,4 +161,70 @@ export async function sendPatientChatMessage(patientNbr: string, message: string
   }
 
   return res.json();
+}
+// lib/api.ts
+export async function getWhatIfScore(payload: Record<string, any>) {
+  const res = await fetch('/api/v1/score', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const txt = await res.text().catch(() => '');
+    throw new Error(`Score API error ${res.status}: ${txt}`);
+  }
+
+  const json = await res.json().catch(() => ({}));
+
+  // Normalize local_factors into string array.
+  // Support common shapes:
+  // - ["Elevated A1C", ...]
+  // - [{ feature: 'A1C', impact: 'high' }, ...]
+  // - [{ name: 'X', score: 0.3 }, ...]
+  // - { feature: 'X', impact: 'Y' }  (single object)
+  let rawFactors: any[] = [];
+  if (Array.isArray(json.local_factors)) {
+    rawFactors = json.local_factors;
+  } else if (Array.isArray(json.localFactors)) {
+    rawFactors = json.localFactors;
+  } else if (json.local_factors && typeof json.local_factors === 'object') {
+    // single-object case
+    rawFactors = [json.local_factors];
+  } else if (json.localFactors && typeof json.localFactors === 'object') {
+    rawFactors = [json.localFactors];
+  }
+
+  const local_factors: string[] = rawFactors.map((f: any) => {
+    if (typeof f === 'string') return f;
+    if (f == null) return '';
+    // common object shapes
+    if (typeof f === 'object') {
+      // prefer obvious fields
+      if (typeof f.feature === 'string' && (f.impact || f.value || f.score)) {
+        const impact = f.impact ?? f.value ?? f.score;
+        return `${f.feature}${impact ? `: ${impact}` : ''}`;
+      }
+      if (typeof f.name === 'string' && (f.score || f.value)) {
+        return `${f.name}${f.score ? `: ${f.score}` : ''}`;
+      }
+      // fallback: pretty-print keys
+      try {
+        return Object.entries(f)
+          .map(([k, v]) => `${k}: ${String(v)}`)
+          .join(', ');
+      } catch {
+        return JSON.stringify(f);
+      }
+    }
+    return String(f);
+  }).filter(Boolean);
+
+  return {
+    prob: Number(json.prob ?? json.probability ?? json.risk_prob ?? 0),
+    group: String(json.group ?? json.risk_group ?? (json.prob >= 0.5 ? 'high' : json.prob >= 0.2 ? 'medium' : 'low')),
+    local_factors,
+    explanation: String(json.explanation ?? json.summary ?? json.message ?? ''),
+    raw: json,
+  };
 }
