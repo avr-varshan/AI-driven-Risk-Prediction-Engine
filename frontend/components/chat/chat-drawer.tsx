@@ -124,7 +124,7 @@ export function ChatDrawer({ patientNbr }: ChatDrawerProps) {
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
         <Button
-          className="fixed bottom-6 right-6 h-12 w-12 rounded-full shadow-lg"
+          className="fixed bottom-16 right-6 h-12 w-12 rounded-full shadow-lg"
           size="icon"
         >
           <MessageCircle className="h-5 w-5" />

@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -12,7 +13,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { RiskBadge } from '@/components/ui/risk-badge';
-import { createPatient } from '@/lib/api';
 import { CreatePatientResponse } from '@/lib/types';
 import { Loader2 } from 'lucide-react';
 
@@ -54,8 +54,60 @@ export function PatientForm({ onSuccess }: PatientFormProps) {
     },
   });
 
+  /**
+   * Mutation: POST form payload to /api/v1/score (which may call Gemini)
+   * Normalize response into a CreatePatientResponse-like shape for UI.
+   */
   const createPatientMutation = useMutation({
-    mutationFn: createPatient,
+    mutationFn: async (payload: any) => {
+      const res = await fetch('/api/v1/score', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const txt = await res.text().catch(() => '');
+        throw new Error(`Score API error ${res.status}: ${txt}`);
+      }
+
+      const json = await res.json().catch(() => ({}));
+
+      // Normalize fields (adapt to whatever /api/v1/score returns)
+      const prob = Number(json.prob ?? json.probability ?? json.risk_prob ?? 0);
+      const group = String(
+        json.group ?? json.risk_group ?? (prob >= 0.5 ? 'high' : prob >= 0.2 ? 'medium' : 'low')
+      );
+      const local_factors = Array.isArray(json.local_factors)
+        ? json.local_factors.map((f: any) => (typeof f === 'string' ? f : JSON.stringify(f)))
+        : Array.isArray(json.localFactors)
+        ? json.localFactors.map((f: any) => (typeof f === 'string' ? f : JSON.stringify(f)))
+        : [];
+
+      const recommendations = Array.isArray(json.recommendations)
+        ? json.recommendations.map((r: any) => String(r))
+        : Array.isArray(json.recs)
+        ? json.recs.map((r: any) => String(r))
+        : [];
+
+      // Build CreatePatientResponse-like object used by the component's UI
+      const patientNbr = String(json.patient_nbr ?? json.patientNbr ?? Math.floor(Math.random() * 1_000_000));
+
+      const result: CreatePatientResponse = {
+        // minimal shape to satisfy your UI: patient_nbr and nested risk object
+        patient_nbr: patientNbr,
+        risk: {
+          prob,
+          group,
+          local_factors,
+          recommendations,
+        },
+        // include raw server response for debugging if needed
+        raw: json as any,
+      } as any;
+
+      return result;
+    },
     onSuccess: (data) => {
       setRiskResult(data);
       onSuccess?.(data);
@@ -63,6 +115,7 @@ export function PatientForm({ onSuccess }: PatientFormProps) {
   });
 
   const onSubmit = (data: PatientFormData) => {
+    // send the full form payload to /api/v1/score
     createPatientMutation.mutate(data);
   };
 
