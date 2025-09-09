@@ -150,14 +150,6 @@ This application enables healthcare providers to:
 
 ---
 
-## 📚 References
-
-- [Diabetes 130-US Hospitals Dataset](https://www.kaggle.com/datasets/brandao/diabetes)
-- [SMOTE - imbalanced-learn](https://imbalanced-learn.org/stable/references/generated/imblearn.over_sampling.SMOTE.html)
-- [Random Forest - scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html)
-- [SHAP - Explainable AI](https://shap.readthedocs.io/en/latest/)
-
----
 
 ## 🤝 Contributing
 
