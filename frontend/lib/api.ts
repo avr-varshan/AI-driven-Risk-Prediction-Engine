@@ -140,3 +140,25 @@ export async function sendChatMessage(
 
   return response.json();
 }
+/**
+ * Send a message scoped to a particular patient.
+ * POSTs to /api/v1/patients/:patientNbr
+ */
+export async function sendPatientChatMessage(patientNbr: string, message: string) {
+  if (!patientNbr) throw new Error('patientNbr required');
+
+  const url = `/api/v1/patients/${encodeURIComponent(patientNbr)}`;
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message }),
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`Patient chat API error ${res.status}: ${text}`);
+  }
+
+  return res.json();
+}

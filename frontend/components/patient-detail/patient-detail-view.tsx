@@ -11,6 +11,7 @@ import { WhatIfPanel } from './what-if-panel';
 import { TimelineCharts } from './timeline-charts';
 import { PatientDetail } from '@/lib/types';
 import { ArrowLeft, User, Calendar, MapPin, Activity } from 'lucide-react';
+import { formatDateDDMMYYYY } from '@/lib/utils';
 
 interface PatientDetailViewProps {
   patient: PatientDetail;
@@ -84,7 +85,7 @@ export function PatientDetailView({ patient, patientNbr }: PatientDetailViewProp
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600">Date:</span>
                   <span className="text-sm font-medium">
-                    {new Date(patient.last_encounter.date).toLocaleDateString()}
+                    {formatDateDDMMYYYY(patient.last_encounter?.date)}
                   </span>
                 </div>
               </div>

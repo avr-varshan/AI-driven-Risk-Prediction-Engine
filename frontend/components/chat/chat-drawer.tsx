@@ -8,15 +8,22 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 import { MessageCircle, Send, Loader2 } from 'lucide-react';
-import { sendChatMessage } from '@/lib/api';
+import { sendChatMessage, sendPatientChatMessage } from '@/lib/api';
 import { ChatResponse } from '@/lib/types';
+
+interface UsedDataShape {
+  risk_prob_before?: number;
+  risk_prob_after?: number;
+  drivers?: string[]; // ensure array
+  [k: string]: any;
+}
 
 interface ChatMessage {
   id: string;
   type: 'user' | 'assistant';
   content: string;
   timestamp: Date;
-  usedData?: ChatResponse['used_data'];
+  usedData?: UsedDataShape;
   links?: string[];
 }
 
@@ -30,16 +37,56 @@ export function ChatDrawer({ patientNbr }: ChatDrawerProps) {
   const [input, setInput] = useState('');
 
   const chatMutation = useMutation({
-    mutationFn: ({ message, scope }: { message: string; scope: 'global' | 'patient' }) =>
-      sendChatMessage(message, scope, patientNbr),
+    mutationFn: async ({ message, scope }: { message: string; scope: 'global' | 'patient' }) => {
+      if (scope === 'patient') {
+        if (!patientNbr) throw new Error('patientNbr required for patient-scoped chat');
+        return await sendPatientChatMessage(patientNbr, message);
+      }
+      return await sendChatMessage(message);
+    },
     onSuccess: (data, variables) => {
+      // DEBUG: log response so we can see shapes during dev
+      // console.log('chat response', data);
+
+      // Normalize content: prefer data.answer, else try patient insights summary
+      const content =
+        (data && (data.answer ?? data?.insights?.summary ?? data?.patient?.insights?.summary)) || 'No reply';
+
+      // Normalize usedData into a predictable shape (avoid undefined)
+      const usedDataRaw = data?.used_data ?? data?.insights?.used_data ?? data?.patient?.used_data ?? data?.patient?.risk ?? {};
+      const usedData: UsedDataShape = {
+        risk_prob_before: usedDataRaw?.risk_prob_before ?? usedDataRaw?.risk_prob ?? undefined,
+        risk_prob_after: usedDataRaw?.risk_prob_after ?? undefined,
+        drivers: Array.isArray(usedDataRaw?.drivers) ? usedDataRaw.drivers : [],
+        // copy other keys if present
+        ...usedDataRaw,
+      };
+
+      const links = Array.isArray(data?.links)
+        ? data.links
+        : Array.isArray(data?.insights?.links)
+        ? data.insights.links
+        : [];
+
       const assistantMessage: ChatMessage = {
         id: `assistant-${Date.now()}`,
         type: 'assistant',
-        content: data.answer,
+        content,
         timestamp: new Date(),
-        usedData: data.used_data,
-        links: data.links,
+        usedData,
+        links,
+      };
+      setMessages(prev => [...prev, assistantMessage]);
+    },
+    onError: (err) => {
+      // surface a small assistant message on error
+      const assistantMessage: ChatMessage = {
+        id: `assistant-error-${Date.now()}`,
+        type: 'assistant',
+        content: `Error: ${String((err as Error).message ?? 'unknown')}`,
+        timestamp: new Date(),
+        usedData: { drivers: [] },
+        links: [],
       };
       setMessages(prev => [...prev, assistantMessage]);
     },
@@ -143,13 +190,13 @@ export function ChatDrawer({ patientNbr }: ChatDrawerProps) {
                   {message.usedData && (
                     <div className="mt-3 pt-3 border-t border-gray-200">
                       <div className="text-xs text-gray-600 space-y-1">
-                        {message.usedData.risk_prob_before !== undefined && (
+                        {typeof message.usedData.risk_prob_before === 'number' && (
                           <div>Before: {Math.round(message.usedData.risk_prob_before * 100)}%</div>
                         )}
-                        {message.usedData.risk_prob_after !== undefined && (
+                        {typeof message.usedData.risk_prob_after === 'number' && (
                           <div>After: {Math.round(message.usedData.risk_prob_after * 100)}%</div>
                         )}
-                        {message.usedData.drivers.length > 0 && (
+                        {Array.isArray(message.usedData.drivers) && message.usedData.drivers.length > 0 && (
                           <div>Drivers: {message.usedData.drivers.join(', ')}</div>
                         )}
                       </div>

@@ -1,4 +1,3 @@
-// frontend/app/api/v1/patients/[patient_nbr]/route.ts
 import patientsIndex from '@/app/api/_fixtures/patientsIndex.json';
 import { NextResponse } from 'next/server';
 import fs from 'fs';
@@ -70,7 +69,6 @@ function extractTextFromGeminiResponse(geminiJson: any): string {
       const candidate = geminiJson.candidates[0];
       if (candidate?.content) {
         const content = candidate.content;
-        // content.parts (object) or content may be array-like
         if (Array.isArray(content.parts) && content.parts.length) {
           return content.parts.map((p: any) => p.text ?? '').join('').trim();
         }
@@ -80,7 +78,10 @@ function extractTextFromGeminiResponse(geminiJson: any): string {
       }
     }
     if (Array.isArray(geminiJson.output) && geminiJson.output.length) {
-      const parts = geminiJson.output.flatMap((o: any) => o.content ?? []).map((c: any) => c.text ?? '').filter(Boolean);
+      const parts = geminiJson.output
+        .flatMap((o: any) => o.content ?? [])
+        .map((c: any) => c.text ?? '')
+        .filter(Boolean);
       if (parts.length) return parts.join('').trim();
     }
     if (typeof geminiJson.text === 'string') return geminiJson.text.trim();
@@ -94,14 +95,12 @@ function extractTextFromGeminiResponse(geminiJson: any): string {
 
 /**
  * Try to parse the first JSON object found in the model text.
- * Returns null if parsing fails.
  */
 function parseFirstJsonObjectFromText(text: string): any | null {
   if (!text) return null;
   const first = text.indexOf('{');
   const last = text.lastIndexOf('}');
   if (first === -1 || last === -1 || last <= first) {
-    // no obvious JSON braces; try direct parse
     try {
       return JSON.parse(text);
     } catch {
@@ -111,8 +110,7 @@ function parseFirstJsonObjectFromText(text: string): any | null {
   const candidate = text.slice(first, last + 1);
   try {
     return JSON.parse(candidate);
-  } catch (e) {
-    // last attempt: extract braces progressively
+  } catch {
     for (let i = first; i >= 0; i--) {
       for (let j = last; j < text.length; j++) {
         const sub = text.slice(i, j + 1);
@@ -129,19 +127,14 @@ function parseFirstJsonObjectFromText(text: string): any | null {
 
 /**
  * Call Gemini Developer REST with a system prompt and user message.
- * Returns { text, rawJson } where text is extracted plain text and rawJson is parsed response body.
  */
 async function callGeminiForPatientAnalysis(systemPrompt: string, userMessage: string) {
   const GEMINI_KEY = process.env.GEMINI_API_KEY;
   if (!GEMINI_KEY) throw new Error('GEMINI_API_KEY not configured');
 
-  // Build a compact prompt asking for JSON output with fields: summary, recommendations (array)
   const finalPrompt = `${systemPrompt}\n\nPatient context:\n${userMessage}\n\nRespond ONLY with a valid JSON object in the following shape:\n{ "summary": "<one-line summary>", "recommendations": ["r1","r2", ...] }\nDo not include extra commentary or markdown.`;
 
-  const body = {
-    contents: [{ parts: [{ text: finalPrompt }] }],
-    // optional tuning: temperature: 0.0
-  };
+  const body = { contents: [{ parts: [{ text: finalPrompt }] }] };
 
   const res = await fetch(GEMINI_GENERATE_URL, {
     method: 'POST',
@@ -159,32 +152,26 @@ async function callGeminiForPatientAnalysis(systemPrompt: string, userMessage: s
   return { text, raw };
 }
 
+/**
+ * GET /api/v1/patients/[patient_nbr]
+ */
 export async function GET(_req: Request, { params }: { params: { patient_nbr?: string } }) {
   try {
     const patientNbr = params?.patient_nbr;
     if (!patientNbr) return NextResponse.json({ error: 'patient_nbr required' }, { status: 400 });
 
-    // 1) Load local fixture or build from index
     const fixture = loadPatientFixture(patientNbr);
     const patientDetail = fixture ?? buildPatientFromIndex(patientNbr);
-
     if (!patientDetail) return NextResponse.json({ error: 'patient not found' }, { status: 404 });
 
-    // 2) If Gemini configured, call it to produce insights
     const GEMINI_KEY = process.env.GEMINI_API_KEY;
-    if (!GEMINI_KEY) {
-      // return patient detail without insights
-      return NextResponse.json({ patient: patientDetail }, { status: 200 });
-    }
+    if (!GEMINI_KEY) return NextResponse.json({ patient: patientDetail }, { status: 200 });
 
-    // Build a concise system prompt including cohort summary (from patientsIndex)
     const cohortSummary = (patientsIndex as any).summary ?? {};
     const systemPrompt = `You are a clinical assistant. Given the patient record (JSON) and cohort summary, produce a short "summary" (1-2 sentences) describing the patient's main risk factors and a short list of actionable "recommendations" (2-4 items). Use clinical tone.`;
 
-    // Provide patient context as JSON string (safe length—if large, trim)
     const patientContext = JSON.stringify(patientDetail);
 
-    // Call Gemini
     let geminiResult;
     try {
       geminiResult = await callGeminiForPatientAnalysis(
@@ -193,31 +180,77 @@ export async function GET(_req: Request, { params }: { params: { patient_nbr?: s
       );
     } catch (err) {
       console.error('Gemini call failed:', err);
-      // return patient detail without insights but indicate the failure
       return NextResponse.json({ patient: patientDetail, insights: { summary: 'Gemini call failed', recommendations: [] } }, { status: 200 });
     }
 
-    // Parse JSON from model text
     const parsed = parseFirstJsonObjectFromText(geminiResult.text || '');
     if (parsed && (parsed.summary || Array.isArray(parsed.recommendations))) {
-      // normalize recommendations to string[]
       const recs = Array.isArray(parsed.recommendations) ? parsed.recommendations.map((r: any) => String(r)) : [];
       const insights = { summary: String(parsed.summary ?? '').trim(), recommendations: recs };
       return NextResponse.json({ patient: patientDetail, insights, gemini_raw: geminiResult.raw ?? null }, { status: 200 });
     }
 
-    // If parsing failed, return the extracted text as a fallback "summary"
     const fallbackSummary = geminiResult.text ? String(geminiResult.text).slice(0, 2000) : 'No insights';
-    return NextResponse.json(
-      {
-        patient: patientDetail,
-        insights: { summary: fallbackSummary, recommendations: [] },
-        gemini_raw: geminiResult.raw ?? null,
-      },
-      { status: 200 }
-    );
+    return NextResponse.json({ patient: patientDetail, insights: { summary: fallbackSummary, recommendations: [] }, gemini_raw: geminiResult.raw ?? null }, { status: 200 });
   } catch (err) {
     console.error('GET /api/v1/patients/[patient_nbr] error:', err);
+    return NextResponse.json({ error: 'internal server error' }, { status: 500 });
+  }
+}
+
+/**
+ * POST /api/v1/patients/[patient_nbr]
+ * Body: { message?: string }
+ */
+export async function POST(req: Request, { params }: { params: { patient_nbr?: string } }) {
+  try {
+    const patientNbr = params?.patient_nbr;
+    if (!patientNbr) return NextResponse.json({ error: 'patient_nbr required' }, { status: 400 });
+
+    let body: any = {};
+    try {
+      body = await req.json();
+    } catch {
+      body = {};
+    }
+    const userMessage = String(body?.message ?? '').trim();
+
+    const fixture = loadPatientFixture(patientNbr);
+    const patientDetail = fixture ?? buildPatientFromIndex(patientNbr);
+    if (!patientDetail) return NextResponse.json({ error: 'patient not found' }, { status: 404 });
+
+    const GEMINI_KEY = process.env.GEMINI_API_KEY;
+    if (!GEMINI_KEY) {
+      return NextResponse.json({ patient: patientDetail, insights: { summary: 'Gemini not configured', recommendations: [] } }, { status: 200 });
+    }
+
+    const cohortSummary = (patientsIndex as any).summary ?? {};
+    const systemPrompt = `You are a clinical assistant. Given the patient record (JSON) and cohort summary, produce a short "summary" (1-2 sentences) describing the patient's main risk factors and a short list of actionable "recommendations" (2-4 items). Use clinical tone.`;
+    const patientContext = JSON.stringify(patientDetail);
+    const userContext = userMessage ? `\nUser message: ${userMessage}` : '';
+
+    let geminiResult;
+    try {
+      geminiResult = await callGeminiForPatientAnalysis(
+        `${systemPrompt}\nCohort summary: ${JSON.stringify(cohortSummary)}`,
+        `${patientContext}${userContext}`
+      );
+    } catch (err) {
+      console.error('Gemini call failed (POST):', err);
+      return NextResponse.json({ patient: patientDetail, insights: { summary: 'Gemini call failed', recommendations: [] } }, { status: 200 });
+    }
+
+    const parsed = parseFirstJsonObjectFromText(geminiResult.text || '');
+    if (parsed && (parsed.summary || Array.isArray(parsed.recommendations))) {
+      const recs = Array.isArray(parsed.recommendations) ? parsed.recommendations.map((r: any) => String(r)) : [];
+      const insights = { summary: String(parsed.summary ?? '').trim(), recommendations: recs };
+      return NextResponse.json({ patient: patientDetail, insights, gemini_raw: geminiResult.raw ?? null }, { status: 200 });
+    }
+
+    const fallbackSummary = geminiResult.text ? String(geminiResult.text).slice(0, 2000) : 'No insights';
+    return NextResponse.json({ patient: patientDetail, insights: { summary: fallbackSummary, recommendations: [] }, gemini_raw: geminiResult.raw ?? null }, { status: 200 });
+  } catch (err) {
+    console.error('POST /api/v1/patients/[patient_nbr] error:', err);
     return NextResponse.json({ error: 'internal server error' }, { status: 500 });
   }
 }
